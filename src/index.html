@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NovelReader</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300;1,8..60,400&family=Lora:ital,wght@0,400;0,500;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Literata:ital,opsz,wght@0,7..72,300;0,7..72,400;1,7..72,300;1,7..72,400&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+
+    <!-- INJECT_CSS -->
+</head>
+<body>
+
+<div id="progress-wrap" aria-hidden="true"><div id="progress-bar"></div></div>
+<div id="toast-container"></div>
+
+<!-- Aurora Canvas Background -->
+<div id="aurora-canvas-container" aria-hidden="true">
+    <canvas id="aurora-canvas"></canvas>
+</div>
+
+<!-- ======================================================
+     LANDING PAGE
+====================================================== -->
+<main id="landing-page">
+    <div class="landing-inner">
+        <header class="masthead">
+            <div class="mast-emblem" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                </svg>
+            </div>
+            <h1>NovelReader</h1>
+            <p class="mast-tagline" id="mast-tagline">your private reading space</p>
+        </header>
+
+        <div class="input-area">
+            <div class="input-tabs">
+                <button class="input-tab active" id="tab-paste" onclick="App.switchTab('paste')">Paste text</button>
+                <button class="input-tab" id="tab-preview" onclick="App.switchTab('preview')" disabled>Preview</button>
+            </div>
+
+            <div class="paste-pane active" id="pane-paste">
+                <div class="textarea-wrap">
+                    <label for="text-input" class="sr-only">Paste story text</label>
+                    <textarea id="text-input" placeholder="Paste your text here…" spellcheck="false"></textarea>
+                    <span class="word-count" id="word-count"></span>
+                </div>
+            </div>
+
+            <div class="preview-pane" id="pane-preview">
+                <div class="preview-box">
+                    <div class="preview-meta" id="preview-meta">
+                        <span class="preview-filename" id="preview-filename">—</span>
+                        <span class="preview-format-badge" id="preview-badge">TXT</span>
+                        <div class="preview-stats-row" id="preview-stats-row"></div>
+                    </div>
+                    <div class="preview-content" id="preview-content">
+                        <p class="preview-empty">Start typing or open a file to see a preview…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-primary" onclick="App.startReading()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Start Reading
+            </button>
+            <label class="btn btn-secondary" style="cursor:pointer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Open file
+                <input type="file" id="file-upload" class="sr-only" accept=".txt,.epub,.md,.markdown">
+            </label>
+            <button class="btn btn-secondary" id="continue-btn" style="display:none" onclick="App.loadSaved()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+                Continue
+            </button>
+        </div>
+
+        <div id="reset-row" style="display:none">
+            <div class="hairline">saved session</div>
+            <div class="btn-row" style="margin-top:14px">
+                <button class="btn btn-ghost" onclick="App.clearAll()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                    Clear Book Data
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- ======================================================
+     READER PAGE
+====================================================== -->
+<main id="reader-page">
+    <article id="content-area" class="font-source"></article>
+
+    <div id="page-view">
+        <div id="page-canvas" class="font-source">
+            <div id="page-text"></div>
+        </div>
+    </div>
+
+    <div id="page-nav">
+        <button class="page-nav-btn" id="page-prev" onclick="App.pagePrev()" title="Previous page" aria-label="Previous page">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span class="page-counter" id="page-counter">
+            <span class="page-counter-frac" id="page-num">1</span>
+            <span class="page-counter-total" id="page-total"> / 1</span>
+        </span>
+        <button class="page-nav-btn" id="page-next" onclick="App.pageNext()" title="Next page" aria-label="Next page">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+    </div>
+    <p class="page-key-hint" id="page-key-hint">← → arrow keys to turn pages</p>
+
+    <div id="toolbar-proximity"></div>
+</main>
+
+<!-- Floating Toolbar -->
+<div id="toolbar-wrap">
+    <nav id="toolbar" aria-label="Reader controls">
+        <button class="t-btn" onclick="App.goBack()" title="Exit" aria-label="Exit reader">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="t-div"></div>
+        <button class="t-btn" onclick="App.adjustFont(-1)" title="Smaller" aria-label="Decrease font size">
+            <span style="font-size:14px;font-weight:600;font-family:'Playfair Display',serif">A</span>
+        </button>
+        <span class="t-fsz" id="fsz-label" aria-live="polite">20</span>
+        <button class="t-btn" onclick="App.adjustFont(1)" title="Larger" aria-label="Increase font size">
+            <span style="font-size:19px;font-weight:600;font-family:'Playfair Display',serif">A</span>
+        </button>
+        <div class="t-div"></div>
+        <button class="t-btn" id="width-btn" onclick="App.toggleWidth()" title="Reading width" aria-label="Toggle reading width">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 7h7M3 17h7M14 7h7M14 17h7"/></svg>
+        </button>
+        <div class="t-div"></div>
+        <button class="t-btn" onclick="App.openSettings()" title="Settings" aria-label="Open settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+    </nav>
+</div>
+
+<!-- Drop overlay -->
+<div id="drop-overlay" aria-hidden="true">
+    <div class="drop-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    </div>
+    <p class="drop-label">Drop to open</p>
+    <p class="drop-formats">.txt · .epub · .md</p>
+</div>
+
+<!-- Settings -->
+<div id="settings-overlay" onclick="App.closeSettings()"></div>
+<div id="settings-panel" role="dialog" aria-modal="true" aria-label="Reading Settings">
+    <div class="panel-handle" onclick="App.closeSettings()" aria-label="Close settings" role="button" tabindex="0"><span></span></div>
+    <h2 class="panel-title">Reading Settings</h2>
+
+    <div class="panel-section">
+        <p class="panel-label">Theme</p>
+        <div class="theme-grid" id="theme-grid">
+            <button class="theme-swatch sw-ember active" data-theme="ember" onclick="App.setTheme('ember',this)"><div class="swatch-ring"><div class="swatch-circle">Aa</div></div><span class="swatch-name">Ember</span></button>
+            <button class="theme-swatch sw-midnight" data-theme="midnight" onclick="App.setTheme('midnight',this)"><div class="swatch-ring"><div class="swatch-circle">Aa</div></div><span class="swatch-name">Midnight</span></button>
+            <button class="theme-swatch sw-forest" data-theme="forest" onclick="App.setTheme('forest',this)"><div class="swatch-ring"><div class="swatch-circle">Aa</div></div><span class="swatch-name">Forest</span></button>
+            <button class="theme-swatch sw-parchment" data-theme="parchment" onclick="App.setTheme('parchment',this)"><div class="swatch-ring"><div class="swatch-circle">Aa</div></div><span class="swatch-name">Parchment</span></button>
+            <button class="theme-swatch sw-slate" data-theme="slate" onclick="App.setTheme('slate',this)"><div class="swatch-ring"><div class="swatch-circle">Aa</div></div><span class="swatch-name">Slate</span></button>
+        </div>
+    </div>
+
+    <div class="panel-section">
+        <p class="panel-label">Typeface</p>
+        <div class="font-grid" id="font-grid">
+            <button class="font-card active" data-font="source" onclick="App.setFont('source',this)"><span class="font-sample" style="font-family:'Source Serif 4',serif;font-weight:300">Aa</span><div class="font-meta"><div class="font-name">Source Serif 4</div><div class="font-desc">Clean, optical-size aware — a modern workhorse</div></div><div class="font-check">✓</div></button>
+            <button class="font-card" data-font="lora" onclick="App.setFont('lora',this)"><span class="font-sample" style="font-family:'Lora',serif;font-style:italic">Aa</span><div class="font-meta"><div class="font-name">Lora</div><div class="font-desc">Warm, calligraphic serifs — hand-lettered feel</div></div><div class="font-check">✓</div></button>
+            <button class="font-card" data-font="garamond" onclick="App.setFont('garamond',this)"><span class="font-sample" style="font-family:'EB Garamond',serif">Aa</span><div class="font-meta"><div class="font-name">EB Garamond</div><div class="font-desc">Old-style Renaissance cuts — classic novel look</div></div><div class="font-check">✓</div></button>
+            <button class="font-card" data-font="literata" onclick="App.setFont('literata',this)"><span class="font-sample" style="font-family:'Literata',serif;font-weight:300">Aa</span><div class="font-meta"><div class="font-name">Literata</div><div class="font-desc">Designed for e-reading — high legibility</div></div><div class="font-check">✓</div></button>
+            <button class="font-card" data-font="crimson" onclick="App.setFont('crimson',this)"><span class="font-sample" style="font-family:'Crimson Pro',serif;font-weight:300;font-style:italic">Aa</span><div class="font-meta"><div class="font-name">Crimson Pro</div><div class="font-desc">Humanist, elegant, narrow — romantic fiction</div></div><div class="font-check">✓</div></button>
+            <button class="font-card" data-font="cormorant" onclick="App.setFont('cormorant',this)"><span class="font-sample" style="font-family:'Cormorant Garamond',serif;font-weight:400">Aa</span><div class="font-meta"><div class="font-name">Cormorant Garamond</div><div class="font-desc">Refined, high-contrast cuts — aristocratic</div></div><div class="font-check">✓</div></button>
+        </div>
+    </div>
+
+    <div class="panel-section">
+        <p class="panel-label">Layout</p>
+        <div class="control-row">
+            <span class="ctrl-label">Font size</span>
+            <div class="ctrl-btns">
+                <button class="ctrl-icon-btn" onclick="App.adjustFont(-1)" aria-label="Smaller"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+                <span class="size-display" id="panel-fsz">20</span>
+                <button class="ctrl-icon-btn" onclick="App.adjustFont(1)" aria-label="Larger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            </div>
+        </div>
+        <div class="control-row">
+            <span class="ctrl-label">Line spacing</span>
+            <div class="ctrl-btns">
+                <button class="ctrl-btn" id="lh-tight" onclick="App.setLineHeight('tight')">Tight</button>
+                <button class="ctrl-btn on" id="lh-normal" onclick="App.setLineHeight('normal')">Normal</button>
+                <button class="ctrl-btn" id="lh-relaxed" onclick="App.setLineHeight('relaxed')">Airy</button>
+            </div>
+        </div>
+        <div class="control-row">
+            <span class="ctrl-label">Reading width</span>
+            <div class="ctrl-btns">
+                <button class="ctrl-btn on" id="w-narrow" onclick="App.setWidth('narrow')">Narrow</button>
+                <button class="ctrl-btn" id="w-wide" onclick="App.setWidth('wide')">Wide</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-section">
+        <p class="panel-label">Reading Mode</p>
+        <div class="toggle-row">
+            <label class="toggle-label" for="page-mode-toggle">
+                Page mode
+                <span class="toggle-desc">Turn pages instead of scrolling</span>
+            </label>
+            <label class="toggle-switch">
+                <input type="checkbox" id="page-mode-toggle" onchange="App.setPageMode(this.checked)">
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+            </label>
+        </div>
+    </div>
+
+    <div class="panel-footer">
+        <div class="hairline">session</div>
+        <div class="btn-row" style="margin-top:14px">
+            <button class="btn btn-ghost" onclick="App.clearAll()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                Clear Book Data
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- INJECT_JS -->
+</body>
+</html>

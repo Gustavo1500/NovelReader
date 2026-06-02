@@ -1,0 +1,112 @@
+/* =====================================================
+   THEME DEFINITIONS
+===================================================== */
+:root {
+    --bg-base:         #14110e;
+    --bg-mid:          #1c1712;
+    --glow-a:          #be7828;
+    --glow-b:          #6e3c0a;
+    --surface:         rgba(26, 18, 10, 0.82);
+    --surface-border:  rgba(210, 165, 90, 0.14);
+    --surface-hover:   rgba(210, 165, 90, 0.10);
+    --accent:          #c8924a;
+    --accent-soft:     rgba(200, 146, 74, 0.18);
+    --accent-glow:     rgba(200, 146, 74, 0.32);
+    --accent-grad:     linear-gradient(135deg, #b97d38 0%, #e6b870 50%, #b97d38 100%);
+    --text-hi:         #e3d5c1;
+    --text-mid:        #b59d7e;
+    --text-lo:         #9c8668;
+    --ink:             rgba(225, 210, 185, 0.85);
+    --ink-cap:         #c8924a;
+    --scrollbar:       rgba(200,160,90,0.16);
+    --grain-opacity:   0.028;
+    --vignette:        rgba(0,0,0,0.38);
+}
+
+[data-theme="midnight"] {
+    --bg-base:         #050506;
+    --bg-mid:          #0a0a0c;
+    --glow-a:          #6478b4;
+    --glow-b:          #3c508c;
+    --surface:         rgba(15, 15, 18, 0.94);
+    --surface-border:  rgba(180, 160, 140, 0.08);
+    --surface-hover:   rgba(180, 160, 140, 0.06);
+    --accent:          #bfa37a;
+    --accent-soft:     rgba(191, 163, 122, 0.12);
+    --accent-glow:     rgba(191, 163, 122, 0.20);
+    --accent-grad:     linear-gradient(135deg, #a3875e 0%, #d9c4a0 50%, #a3875e 100%);
+    --text-hi:         #b3aaa0;
+    --text-mid:        #8f867b;
+    --text-lo:         #756d63;
+    --ink:             rgba(170, 162, 150, 0.80);
+    --ink-cap:         #a3875e;
+    --scrollbar:       rgba(191,163,122,0.12);
+    --grain-opacity:   0.024;
+    --vignette:        rgba(0,0,0,0.65);
+}
+
+[data-theme="forest"] {
+    --bg-base:         #0c120e;
+    --bg-mid:          #131a16;
+    --glow-a:          #3c8c50;
+    --glow-b:          #1e5a28;
+    --surface:         rgba(15, 25, 18, 0.84);
+    --surface-border:  rgba(100, 180, 110, 0.13);
+    --surface-hover:   rgba(100, 180, 110, 0.09);
+    --accent:          #72b87a;
+    --accent-soft:     rgba(114, 184, 122, 0.16);
+    --accent-glow:     rgba(114, 184, 122, 0.28);
+    --accent-grad:     linear-gradient(135deg, #4d9456 0%, #90d09a 50%, #4d9456 100%);
+    --text-hi:         #c9d6c9;
+    --text-mid:        #99b89c;
+    --text-lo:         #809c82;
+    --ink:             rgba(218, 214, 206, 0.85);
+    --ink-cap:         #72b87a;
+    --scrollbar:       rgba(100,180,110,0.14);
+    --grain-opacity:   0.025;
+    --vignette:        rgba(0,0,0,0.45);
+}
+
+[data-theme="parchment"] {
+    --bg-base:         #1a140e;
+    --bg-mid:          #261d15;
+    --glow-a:          #a07832;
+    --glow-b:          #785a1e;
+    --surface:         rgba(250, 243, 230, 0.05);
+    --surface-border:  rgba(140, 100, 45, 0.30);
+    --surface-hover:   rgba(140, 100, 45, 0.12);
+    --accent:          #c8924a;
+    --accent-soft:     rgba(200, 146, 74, 0.18);
+    --accent-glow:     rgba(200, 146, 74, 0.28);
+    --accent-grad:     linear-gradient(135deg, #b97d38 0%, #e6b870 50%, #b97d38 100%);
+    --text-hi:         #e8decb;
+    --text-mid:        #c8a87a;
+    --text-lo:         #a07832;
+    --ink:             rgba(232, 220, 195, 0.90);
+    --ink-cap:         #c8924a;
+    --scrollbar:       rgba(200,160,90,0.18);
+    --grain-opacity:   0.045;
+    --vignette:        rgba(0,0,0,0.38);
+}
+
+[data-theme="slate"] {
+    --bg-base:         #111418;
+    --bg-mid:          #181c22;
+    --glow-a:          #5082c8;
+    --glow-b:          #28508c;
+    --surface:         rgba(20, 26, 34, 0.84);
+    --surface-border:  rgba(120, 170, 240, 0.12);
+    --surface-hover:   rgba(120, 170, 240, 0.08);
+    --accent:          #7aaddc;
+    --accent-soft:     rgba(122, 173, 220, 0.15);
+    --accent-glow:     rgba(122, 173, 220, 0.25);
+    --accent-grad:     linear-gradient(135deg, #5090c0 0%, #9ecbee 50%, #5090c0 100%);
+    --text-hi:         #c4d0df;
+    --text-mid:        #98a7b8;
+    --text-lo:         #7e8d9e;
+    --ink:             rgba(212, 210, 208, 0.85);
+    --ink-cap:         #7aaddc;
+    --scrollbar:       rgba(120,170,240,0.13);
+    --grain-opacity:   0.024;
+    --vignette:        rgba(0,0,0,0.48);
+}

@@ -1,0 +1,46 @@
+/* =====================================================
+   FONT STACKS & BASE SETTINGS
+===================================================== */
+.font-source    { font-family: 'Source Serif 4', Georgia, serif; font-weight: 300; }
+.font-lora      { font-family: 'Lora', Georgia, serif; font-weight: 400; }
+.font-garamond  { font-family: 'EB Garamond', Georgia, serif; font-weight: 400; }
+.font-literata  { font-family: 'Literata', Georgia, serif; font-weight: 300; }
+.font-crimson   { font-family: 'Crimson Pro', Georgia, serif; font-weight: 300; }
+.font-cormorant { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; }
+
+.lh-tight   { --reader-lh: 1.65; }
+.lh-normal  { --reader-lh: 1.85; }
+.lh-relaxed { --reader-lh: 2.05; }
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+    background-color: var(--bg-base);
+    color: var(--text-hi);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    min-height: 100vh;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar) transparent;
+    transition: background-color 0.5s ease, color 0.35s ease;
+}
+
+body::before { display: none; } /* Grain handled by aurora canvas container */
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 10px; }
+
+.sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0; }
+
+/* Global Animations */
+@keyframes riseIn {
+    from{opacity:0;transform:translateY(24px);filter:blur(6px)}
+    to{opacity:1;transform:translateY(0);filter:blur(0)}
+}
+@keyframes readerIn {
+    from{opacity:0}to{opacity:1}
+}
