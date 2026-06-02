@@ -73,7 +73,7 @@ function build() {
     );
 
     // 6. Output the master file
-    const outputPath = path.join(distDir, 'NovelReader.html');
+    const outputPath = path.join(__dirname, 'index.html');
     fs.writeFileSync(outputPath, htmlContent);
 
     console.log(`Success! Master file created at: ${outputPath}`);
