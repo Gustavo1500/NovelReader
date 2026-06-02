@@ -2,10 +2,11 @@
    THEME DEFINITIONS
 ===================================================== */
 :root {
+    --aurora-blend:    screen;
     --bg-base:         #14110e;
     --bg-mid:          #1c1712;
-    --glow-a:          #be7828;
-    --glow-b:          #6e3c0a;
+    --glow-a:          #8c2828; /* Deep Red (Contrasts with Gold accent) */
+    --glow-b:          #501414; /* Dark Red */
     --surface:         rgba(26, 18, 10, 0.82);
     --surface-border:  rgba(210, 165, 90, 0.14);
     --surface-hover:   rgba(210, 165, 90, 0.10);
@@ -24,10 +25,11 @@
 }
 
 [data-theme="midnight"] {
+    --aurora-blend:    screen;
     --bg-base:         #050506;
     --bg-mid:          #0a0a0c;
-    --glow-a:          #6478b4;
-    --glow-b:          #3c508c;
+    --glow-a:          #6478b4; /* Original Blue (Already contrasts with Gold accent) */
+    --glow-b:          #3c508c; 
     --surface:         rgba(15, 15, 18, 0.94);
     --surface-border:  rgba(180, 160, 140, 0.08);
     --surface-hover:   rgba(180, 160, 140, 0.06);
@@ -46,10 +48,11 @@
 }
 
 [data-theme="forest"] {
+    --aurora-blend:    screen;
     --bg-base:         #0c120e;
     --bg-mid:          #131a16;
-    --glow-a:          #3c8c50;
-    --glow-b:          #1e5a28;
+    --glow-a:          #a67c33; /* Warm Amber / Sunlight */
+    --glow-b:          #543818; /* Deep Umber / Bark */
     --surface:         rgba(15, 25, 18, 0.84);
     --surface-border:  rgba(100, 180, 110, 0.13);
     --surface-hover:   rgba(100, 180, 110, 0.09);
@@ -68,32 +71,34 @@
 }
 
 [data-theme="parchment"] {
-    --bg-base:         #1a140e;
-    --bg-mid:          #261d15;
-    --glow-a:          #a07832;
-    --glow-b:          #785a1e;
-    --surface:         rgba(250, 243, 230, 0.05);
-    --surface-border:  rgba(140, 100, 45, 0.30);
-    --surface-hover:   rgba(140, 100, 45, 0.12);
-    --accent:          #c8924a;
-    --accent-soft:     rgba(200, 146, 74, 0.18);
-    --accent-glow:     rgba(200, 146, 74, 0.28);
-    --accent-grad:     linear-gradient(135deg, #b97d38 0%, #e6b870 50%, #b97d38 100%);
-    --text-hi:         #e8decb;
-    --text-mid:        #c8a87a;
-    --text-lo:         #a07832;
-    --ink:             rgba(232, 220, 195, 0.90);
-    --ink-cap:         #c8924a;
-    --scrollbar:       rgba(200,160,90,0.18);
+    --aurora-blend:    multiply; /* Required for Aurora on a white/light background */
+    --bg-base:         #f4ecd8;  /* Light Mode "White/Brown" Restore */
+    --bg-mid:          #ebe0c8;
+    --glow-a:          #d2b48c;  /* Tan Aurora */
+    --glow-b:          #b4966e;
+    --surface:         rgba(255, 255, 255, 0.4);
+    --surface-border:  rgba(100, 70, 40, 0.15);
+    --surface-hover:   rgba(255, 255, 255, 0.7);
+    --accent:          #5a8c96;  /* Teal accent (contrasts well with Tan) */
+    --accent-soft:     rgba(90, 140, 150, 0.18);
+    --accent-glow:     rgba(90, 140, 150, 0.28);
+    --accent-grad:     linear-gradient(135deg, #46727a 0%, #82bcc6 50%, #46727a 100%);
+    --text-hi:         #322319;
+    --text-mid:        #5a4b3c;
+    --text-lo:         #8c7864;
+    --ink:             rgba(45, 30, 20, 0.88);
+    --ink-cap:         #5a8c96;
+    --scrollbar:       rgba(100, 70, 40, 0.12);
     --grain-opacity:   0.045;
-    --vignette:        rgba(0,0,0,0.38);
+    --vignette:        rgba(140, 110, 80, 0.15);
 }
 
 [data-theme="slate"] {
+    --aurora-blend:    screen;
     --bg-base:         #111418;
     --bg-mid:          #181c22;
-    --glow-a:          #5082c8;
-    --glow-b:          #28508c;
+    --glow-a:          #6446a0; /* Purple (Contrasts with Light Blue accent) */
+    --glow-b:          #3c286e; /* Dark Purple */
     --surface:         rgba(20, 26, 34, 0.84);
     --surface-border:  rgba(120, 170, 240, 0.12);
     --surface-hover:   rgba(120, 170, 240, 0.08);

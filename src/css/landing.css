@@ -173,7 +173,7 @@ h1 {
 .btn-primary:active { transform:translateY(0);filter:brightness(0.96); }
 
 .btn-secondary { background:var(--surface);backdrop-filter:blur(12px);color:var(--text-hi);border-color:var(--surface-border); }
-.btn-secondary:hover { background:var(--surface-hover);border-color:rgba(200,146,74,0.22);transform:translateY(-1px);box-shadow:0 0 14px -4px var(--accent-glow); }
+.btn-secondary:hover { background:var(--surface-hover);border-color:var(--accent-glow);transform:translateY(-1px);box-shadow:0 0 14px -4px var(--accent-glow); }
 .btn-secondary:active { transform:translateY(0); }
 
 .btn-ghost { background:transparent;color:var(--text-mid);border-color:rgba(200,100,100,0.14);font-size:12.5px; }

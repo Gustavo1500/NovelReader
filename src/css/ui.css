@@ -166,7 +166,7 @@ body.reading-mode #aurora-canvas { opacity: 0.08; }
 .sw-ember     .swatch-circle { background:#14110e;color:#c2b59f;border:1.5px solid rgba(200,146,74,0.35); }
 .sw-midnight  .swatch-circle { background:#050506;color:#898379;border:1.5px solid rgba(191,163,122,0.30); }
 .sw-forest    .swatch-circle { background:#0c120e;color:#bbb9b1;border:1.5px solid rgba(114,184,122,0.30); }
-.sw-parchment .swatch-circle { background:#1a140e;color:#c8924a;border:1.5px solid rgba(200,146,74,0.35); }
+.sw-parchment .swatch-circle { background:#f4ecd8;color:#322319;border:1.5px solid rgba(90,140,150,0.35); }
 .sw-slate     .swatch-circle { background:#111418;color:#b7b6b4;border:1.5px solid rgba(122,173,220,0.30); }
 
 .font-grid { display:grid;grid-template-columns:repeat(1,1fr);gap:7px; }

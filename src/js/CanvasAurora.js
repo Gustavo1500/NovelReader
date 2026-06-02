@@ -16,13 +16,14 @@ const CanvasAurora = (() => {
 
     let isReadingMode = false;
     let particleTargetOpacity = 1.0;
+    let auroraBlend = 'screen';
 
     let mouseX = width / 2, mouseY = height / 2;
     document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; }, { passive: true });
 
     let colors = {
-        glowA: { r: 190, g: 120, b: 40 }, glowB: { r: 110, g: 60, b: 10 }, accent: { r: 200, g: 146, b: 74 },
-        targetGlowA: { r: 190, g: 120, b: 40 }, targetGlowB: { r: 110, g: 60, b: 10 }, targetAccent: { r: 200, g: 146, b: 74 }
+        glowA: { r: 180, g: 70, b: 70 }, glowB: { r: 120, g: 30, b: 30 }, accent: { r: 230, g: 168, b: 74 },
+        targetGlowA: { r: 180, g: 70, b: 70 }, targetGlowB: { r: 120, g: 30, b: 30 }, targetAccent: { r: 230, g: 168, b: 74 }
     };
 
     const bokehCanvas = document.createElement('canvas');
@@ -42,6 +43,10 @@ const CanvasAurora = (() => {
         const hexA   = style.getPropertyValue('--glow-a').trim();
         const hexB   = style.getPropertyValue('--glow-b').trim();
         const hexAcc = style.getPropertyValue('--accent').trim();
+        const blend  = style.getPropertyValue('--aurora-blend').trim();
+        
+        auroraBlend = blend || 'screen';
+        
         if (hexA && hexA.startsWith('#')) colors.targetGlowA = parseHex(hexA);
         if (hexB && hexB.startsWith('#')) colors.targetGlowB = parseHex(hexB);
         if (hexAcc && hexAcc.startsWith('#')) colors.targetAccent = parseHex(hexAcc);
@@ -140,7 +145,7 @@ const CanvasAurora = (() => {
         }
 
         ctx.fillStyle = cachedBgColor; ctx.fillRect(0, 0, width, height);
-        ctx.save(); ctx.globalCompositeOperation = 'screen';
+        ctx.save(); ctx.globalCompositeOperation = auroraBlend;
         for (const curtain of curtains) {
             for (let x = -50; x < width + 50; x += curtain.sliceWidth) {
                 const y = calculateY(x, curtain), fold = calculateFold(x, curtain), alpha = curtain.baseAlpha * (0.4 + 0.6 * fold), thick = curtain.thickness * (0.8 + 0.4 * fold);
