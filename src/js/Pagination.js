@@ -9,10 +9,10 @@ const Pagination = (() => {
 
     const buildBlocks = text => {
         const blocks = [];
-        let firstTextParaApplied = false;
+        let userOverrideFound = false;
 
         text.split(/\r?\n\s*\r?\n/).forEach(raw => {
-            const t = raw.trim();
+            let t = raw.trim();
             if (!t) return;
 
             if (/^[\-\*\u2014\u2015\s]{3,}$/.test(t)) {
@@ -20,29 +20,59 @@ const Pagination = (() => {
                 return;
             }
 
+            // Poetry block processing
             if (t.includes('\n') && isPoetryBlock(t)) {
                 const lines = t.split(/\r?\n/);
                 lines.forEach((line, i) => {
-                    const lt = line.trim();
+                    let lt = line.trim();
                     if (!lt) { blocks.push({ type: 'verse-spacer' }); return; }
-                    blocks.push({ type: 'verse', text: lt, stanzaStart: i === 0 });
+                    
+                    let isOverride = false;
+                    const match = lt.match(/^\[(\p{L})\]/u);
+                    if (match && !userOverrideFound) {
+                        lt = lt.replace(/^\[(\p{L})\]/u, '$1');
+                        isOverride = true;
+                        userOverrideFound = true;
+                    }
+                    blocks.push({ type: 'verse', text: lt, stanzaStart: i === 0, isFirstPara: isOverride });
                 });
                 return;
             }
 
-            let isFirstPara = false;
-            if (!firstTextParaApplied) {
-                const isAllCaps     = t === t.toUpperCase() && /\p{L}/u.test(t);
-                const isHeadingWord = /^(chapter|chap|book|part|prologue|epilogue|section|act|scene)\b/i.test(t);
-                const hasPunct      = /[.!?"'"'»]$/.test(t);
-                const isLikelyTitle = isAllCaps || isHeadingWord || (!hasPunct && t.length < 150);
-                if (!isLikelyTitle && t.length > 15) {
-                    isFirstPara = true;
-                    firstTextParaApplied = true;
+            // Prose block processing
+            let isOverride = false;
+            const match = t.match(/^\[(\p{L})\]/u);
+            if (match && !userOverrideFound) {
+                t = t.replace(/^\[(\p{L})\]/u, '$1');
+                isOverride = true;
+                userOverrideFound = true;
+            }
+
+            blocks.push({ type: 'para', text: t, isFirstPara: isOverride });
+        });
+
+        // 2. Fallback to original heuristic if no user override was found
+        if (!userOverrideFound) {
+            let firstTextParaApplied = false;
+            for (let i = 0; i < blocks.length; i++) {
+                const b = blocks[i];
+                if (b.type !== 'para') continue;
+                
+                const t = b.text.trim();
+                if (!firstTextParaApplied) {
+                    const isAllCaps     = t === t.toUpperCase() && /\p{L}/u.test(t);
+                    const isHeadingWord = /^(chapter|chap|book|part|prologue|epilogue|section|act|scene)\b/i.test(t);
+                    const hasPunct      = /[.!?"'»]$/.test(t);
+                    const isLikelyTitle = isAllCaps || isHeadingWord || (!hasPunct && t.length < 150);
+                    if (!isLikelyTitle && t.length > 15) {
+                        b.isFirstPara = true;
+                        firstTextParaApplied = true;
+                        break;
+                    }
                 }
             }
-            blocks.push({ type: 'para', text: t, isFirstPara });
-        });
+        }
+
         return blocks;
     };
 
@@ -58,6 +88,7 @@ const Pagination = (() => {
             const el = document.createElement('p');
             el.className = 'verse-line';
             if (block.stanzaStart) el.classList.add('stanza-start');
+            if (block.isFirstPara) el.classList.add('first-paragraph');
             el.textContent = block.text;
             return el;
         }
@@ -79,16 +110,17 @@ const Pagination = (() => {
         const paddingBottom = parseFloat(canvasStyle.paddingBottom) || 0;
         const availableHeight = window.innerHeight - paddingTop - paddingBottom - 4;
 
-        const paraSpacing = fontSize * 1.7;
         const canvasWidth = pageCanvas.clientWidth - parseFloat(canvasStyle.paddingLeft || 0) - parseFloat(canvasStyle.paddingRight || 0);
+
+        // Find page-text to use as parent measurement context
+        const pageText = pageCanvas.querySelector('#page-text') || pageCanvas;
 
         const measureEl = document.createElement('div');
         measureEl.style.cssText = `
             position: absolute; top: -9999px; left: 0; visibility: hidden; pointer-events: none;
-            width: ${canvasWidth}px; font-family: ${canvasStyle.fontFamily};
-            font-size: ${fontSize}px; line-height: ${canvasStyle.lineHeight};
+            width: ${canvasWidth}px;
         `;
-        document.body.appendChild(measureEl);
+        pageText.appendChild(measureEl);
 
         const pages = [];
         let currentPageBlocks = [];
@@ -99,13 +131,15 @@ const Pagination = (() => {
             measureEl.innerHTML = ''; measureEl.appendChild(blockEl);
             const blockHeight = blockEl.offsetHeight;
 
-            const spacingToAdd = currentPageBlocks.length > 0 ? paraSpacing : 0;
-            const totalHeightWithBlock = currentHeight + spacingToAdd + blockHeight;
+            const totalHeightWithBlock = currentHeight + blockHeight;
 
             if (totalHeightWithBlock > availableHeight && currentPageBlocks.length > 0) {
-                if (block.type === 'para' && blockHeight > (availableHeight - currentHeight) * 0.7) {
+                const remainingSpace = availableHeight - currentHeight;
+
+                // Split paragraph only if we can fit at least ~2-3 lines of text
+                if (block.type === 'para' && remainingSpace > fontSize * 4) {
                     const words = block.text.split(' ');
-                    let left = 0, right = words.length, bestSplit = Math.floor(words.length * 0.5);
+                    let left = 0, right = words.length, bestSplit = 0;
 
                     while (left < right) {
                         const mid = Math.floor((left + right) / 2);
@@ -114,49 +148,58 @@ const Pagination = (() => {
                         if (block.isFirstPara) testEl.classList.add('first-paragraph');
                         measureEl.innerHTML = ''; measureEl.appendChild(testEl);
                         
-                        if (testEl.offsetHeight <= availableHeight - currentHeight - spacingToAdd) {
+                        if (measureEl.offsetHeight <= remainingSpace) {
                             bestSplit = mid; left = mid + 1;
                         } else { right = mid; }
                     }
 
-                    const firstPart = words.slice(0, bestSplit).join(' ');
-                    const secondPart = words.slice(bestSplit).join(' ');
-                    
-                    const lastCharFirst = firstPart[firstPart.length - 1];
-                    const firstCharSecond = secondPart[0];
-                    const isMidWord = lastCharFirst && firstCharSecond && !/\s/.test(lastCharFirst) && !/\s/.test(firstCharSecond) && firstPart.length > 0 && secondPart.length > 0;
+                    if (bestSplit > 0 && bestSplit < words.length) {
+                        const firstPart = words.slice(0, bestSplit).join(' ');
+                        const secondPart = words.slice(bestSplit).join(' ');
+                        
+                        const lastCharFirst = firstPart[firstPart.length - 1];
+                        const firstCharSecond = secondPart[0];
+                        const isMidWord = lastCharFirst && firstCharSecond && !/\s/.test(lastCharFirst) && !/\s/.test(firstCharSecond) && firstPart.length > 0 && secondPart.length > 0;
 
-                    let finalFirstPart = firstPart, finalSecondPart = secondPart;
+                        let finalFirstPart = firstPart, finalSecondPart = secondPart;
 
-                    if (isMidWord) {
-                        const lastSpace = firstPart.lastIndexOf(' ');
-                        if (lastSpace > firstPart.length * 0.3) {
-                            finalFirstPart = firstPart.substring(0, lastSpace) + '-';
-                            finalSecondPart = firstPart.substring(lastSpace + 1) + ' ' + secondPart;
-                        } else { finalFirstPart = firstPart + '-'; }
+                        if (isMidWord) {
+                            const lastSpace = firstPart.lastIndexOf(' ');
+                            if (lastSpace > firstPart.length * 0.3) {
+                                finalFirstPart = firstPart.substring(0, lastSpace) + '-';
+                                finalSecondPart = firstPart.substring(lastSpace + 1) + ' ' + secondPart;
+                            } else { finalFirstPart = firstPart + '-'; }
+                        }
+
+                        currentPageBlocks.push({ type: 'para', text: finalFirstPart, isFirstPara: block.isFirstPara });
+                        pages.push(currentPageBlocks);
+                        
+                        // Remaining slice of the split block is no longer marked as the first paragraph
+                        currentPageBlocks = [{ type: 'para', text: finalSecondPart, isFirstPara: false }];
+                        
+                        const newEl = makeBlockEl(currentPageBlocks[0]);
+                        measureEl.innerHTML = ''; measureEl.appendChild(newEl);
+                        currentHeight = measureEl.offsetHeight;
+                    } else {
+                        // Split point was invalid, move the entire paragraph to the next page
+                        pages.push(currentPageBlocks);
+                        currentPageBlocks = [block];
+                        currentHeight = blockHeight;
                     }
-
-                    currentPageBlocks.push({ type: 'para', text: finalFirstPart, isFirstPara: block.isFirstPara });
-                    pages.push(currentPageBlocks);
-                    currentPageBlocks = [{ type: 'para', text: finalSecondPart, isFirstPara: false }];
-                    
-                    const newEl = document.createElement('p');
-                    newEl.textContent = finalSecondPart;
-                    measureEl.innerHTML = ''; measureEl.appendChild(newEl);
-                    currentHeight = newEl.offsetHeight;
                 } else {
+                    // Block is not a paragraph or height is insufficient to split, move to the next page
                     pages.push(currentPageBlocks);
                     currentPageBlocks = [block];
                     currentHeight = blockHeight;
                 }
             } else {
                 currentPageBlocks.push(block);
-                currentHeight += spacingToAdd + blockHeight;
+                currentHeight += blockHeight;
             }
         });
 
         if (currentPageBlocks.length > 0) pages.push(currentPageBlocks);
-        document.body.removeChild(measureEl);
+        pageText.removeChild(measureEl);
         return pages;
     };
 

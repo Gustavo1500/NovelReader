@@ -36,7 +36,12 @@
     hanging-punctuation:first last;
     color:var(--ink);
     transition:font-size 0.22s ease,font-family 0.22s ease,color 0.45s ease,line-height 0.3s ease;
+
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
 }
+
 #content-area p:last-child, #page-text p:last-child { padding-bottom:0; }
 
 @keyframes paraIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
