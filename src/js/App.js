@@ -46,6 +46,12 @@ const App = (() => {
         pageKeyHint:   $('page-key-hint'),
         pageModeToggle:$('page-mode-toggle'),
         toolbarWrap:   $('toolbar-wrap'),
+        saveFileBtn:   $('save-file-btn'),
+        fileOverlay:   $('filename-overlay'),
+        fileDialog:    $('filename-dialog'),
+        fileInput:     $('filename-input'),
+        fileHint:      $('filename-dialog-hint'),
+        fileConfirm:   $('filename-confirm-btn')
     };
 
     const FONT_CLASSES = {
@@ -82,10 +88,11 @@ const App = (() => {
     let settingsOpen   = false;
     let scrollTimer    = null;
     let proximityActive= false;
-    let isDesktop      = window.matchMedia('(pointer:fine)').matches;
+    const isDesktop    = window.matchMedia('(pointer:fine)').matches;
     let ticking        = false;
     let lastFocusedElement = null;
     let previewDebounceTimer = null;
+    let _exportPending = false;
 
     /* ── UI Logic ───────────────────────────────────── */
     const setWordCount = text => {
@@ -314,6 +321,142 @@ const App = (() => {
 
     const closeSettings = () => { settingsOpen = false; D.overlay.classList.remove('open'); D.panel.classList.remove('open'); if (lastFocusedElement?.focus) setTimeout(() => lastFocusedElement.focus(), 100); };
 
+    /* ── Export: Save as File (With Offline Fallback) ── */
+    const _sanitizeFilename = name => name.replace(/[<>:"/\\|?*\x00-\x1f]/g, '').replace(/\s+/g, '-').slice(0, 80) || 'novel';
+
+    const _suggestFilename = text => {
+        const firstLine = text.split(/\r?\n/)[0].trim().slice(0, 12);
+        return _sanitizeFilename(firstLine) || 'novel';
+    };
+
+    const openFilenameDialog = () => {
+        const text = loadedText || D.input.value.trim();
+        if (!text) { Utils.showToast('No book loaded to save.'); return; }
+        _exportPending = true;
+        
+        D.fileInput.value = _suggestFilename(text);
+        D.fileHint.textContent = '';
+        D.fileHint.classList.remove('error');
+        D.fileOverlay.classList.add('open');
+        D.fileDialog.classList.add('open');
+        setTimeout(() => { D.fileInput.focus(); D.fileInput.select(); }, 120);
+    };
+
+    const closeFilenameDialog = () => {
+        D.fileOverlay.classList.remove('open');
+        D.fileDialog.classList.remove('open');
+        _exportPending = false;
+    };
+
+    const doExport = async filename => {
+        const text = loadedText || D.input.value.trim();
+        if (!text) { Utils.showToast('No book loaded to save.'); return; }
+
+        D.fileConfirm.disabled = true; 
+        D.fileConfirm.textContent = 'Preparing…';
+
+        let html = '';
+        let successfullyFetched = false;
+
+        try {
+            // 1. Try fetching original source code (Perfect Web template)
+            if (window.location.protocol !== 'file:') {
+                try {
+                    const res = await fetch(window.location.href);
+                    if (res.ok) {
+                        html = await res.text();
+                        successfullyFetched = true;
+                    }
+                } catch (err) {
+                    console.warn('Fetch failed, falling back to local DOM cloning:', err);
+                }
+            }
+
+            // 2. Fallback: Offline DOM cloning and sanitization
+            if (!successfullyFetched) {
+                const clone = document.documentElement.cloneNode(true);
+                
+                // Remove existing SHARED script tags if cloning an already-shared file
+                const scripts = clone.querySelectorAll('head script');
+                scripts.forEach(s => {
+                    if (s.textContent.includes('window.__SHARED_NOVEL__')) s.remove();
+                });
+
+                // Wipe active dynamic contents safely
+                const clearEl = (sel, styleProp, val) => {
+                    const el = clone.querySelector(sel);
+                    if (el) {
+                        if (styleProp !== undefined) el.style.display = styleProp;
+                        if (val !== undefined) {
+                            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.value = val;
+                            else el.innerHTML = val;
+                        }
+                    }
+                };
+
+                clearEl('#content-area', '', '');
+                clearEl('#page-text', '', '');
+                clearEl('#text-input', '', '');
+                clearEl('#landing-page', 'flex');
+                clearEl('#reader-page', 'none');
+                clearEl('#continue-btn', 'none');
+                clearEl('#reset-row', 'none');
+                clearEl('#word-count', '', '');
+
+                const txtInput = clone.querySelector('#text-input');
+                if (txtInput) txtInput.setAttribute('placeholder', 'Paste your text here…');
+
+                // Remove modal classes
+                const rmClass = sel => { 
+                    const el = clone.querySelector(sel); 
+                    if (el && typeof el.className === 'string') {
+                        el.className = el.className.replace(/\b(open|active)\b/g, '').trim(); 
+                    }
+                };
+                rmClass('#page-view'); rmClass('#page-nav'); rmClass('#reader-page');
+                rmClass('#settings-overlay'); rmClass('#settings-panel');
+                rmClass('#filename-overlay'); rmClass('#filename-dialog');
+
+                // Reset body styles & themes safely (Fixes clone.body undefined bug)
+                const cloneBody = clone.querySelector('body');
+                if (cloneBody) cloneBody.className = '';
+                
+                clone.removeAttribute('data-theme');
+
+                html = '<!DOCTYPE html>\n<html lang="en">\n' + clone.innerHTML + '\n</html>';
+            }
+
+            // 3. Inject payload and trigger download
+            const payload = { text, settings: S, title: filename };
+            const jsonStr = JSON.stringify(payload).replace(/</g, '\\u003c'); // Escape HTML scripts
+            const injection = `<script>window.__SHARED_NOVEL__ = ${jsonStr};<\/script>`;
+            
+            html = html.replace('</head>', injection + '\n</head>');
+
+            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            
+            a.href = url;
+            a.download = filename + '.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+            closeFilenameDialog();
+            Utils.showToast('Saved! Share the .html file to read anywhere.');
+
+        } catch (err) {
+            D.fileHint.textContent = 'Export failed: ' + err.message;
+            D.fileHint.classList.add('error');
+            console.error('Export error details:', err);
+        } finally {
+            D.fileConfirm.disabled = false;
+            D.fileConfirm.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Download`;
+        }
+    };
+
     /* ── Events & Binds ─────────────────────────────── */
     const showToolbar = () => { if (settingsOpen) return; toolbarVisible=true; D.toolbar.classList.add('visible'); };
     const hideToolbar = () => { if (settingsOpen) return; toolbarVisible=false; D.toolbar.classList.remove('visible'); };
@@ -369,6 +512,13 @@ const App = (() => {
         }
 
         document.addEventListener('keydown', e => {
+            // Filename dialog keyboard handling - Fully Isolated
+            if (D.fileDialog && D.fileDialog.classList.contains('open')) {
+                if (e.key === 'Enter') { e.preventDefault(); App._confirmExport(); return; }
+                if (e.key === 'Escape') { e.preventDefault(); App._cancelExport(); return; }
+                return; // Block other keydowns completely
+            }
+
             if (e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA') return;
             if (e.key === 'Escape') { if (settingsOpen) { closeSettings(); return; } if (toolbarVisible) hideToolbar(); return; }
             if (settingsOpen && e.key === 'Tab') {
@@ -390,21 +540,89 @@ const App = (() => {
         });
     };
 
+    const _updateSaveBtn = () => {
+        if (D.saveFileBtn) D.saveFileBtn.style.display = (Utils.Stor.get('novelText') || loadedText) ? 'inline-flex' : 'none';
+    };
+
     const init = () => {
+        let localSettings = {};
+        try { 
+            const saved = Utils.Stor.get('novelSettings');
+            if (saved) localSettings = JSON.parse(saved); 
+        } catch(e) {}
+
+        // ── Shared Novel Detection ──────────────────────────
+        if (window.__SHARED_NOVEL__) {
+            const shared = window.__SHARED_NOVEL__;
+            const text = shared.text || '';
+            
+            if (text.length > 0) {
+                // Respect local settings if they exist, fall back to shared
+                if (Object.keys(localSettings).length === 0 && shared.settings) {
+                    S = { ...S, ...shared.settings };
+                } else if (Object.keys(localSettings).length > 0) {
+                    S = { ...S, ...localSettings };
+                }
+                
+                loadedText = text;
+                applyAll();
+                bindEvents(); 
+                bindProximity(); 
+                bindDragDrop();
+                
+                // Fallback UI in case they exit the reader to the dashboard
+                D.continueBtn.style.display = 'inline-flex'; 
+                D.resetRow.style.display = 'block';
+                D.input.value = '';
+                D.input.placeholder = `[Shared File: ${shared.title || 'Shared Story'}]\n\nClick "Start Reading" to view.`;
+                setWordCount(loadedText);
+                showPreview(loadedText, shared.title || 'Shared Story', 'HTML');
+                _updateSaveBtn();
+
+                // Launch directly into reader
+                display(text, 0);
+                return; 
+            }
+        }
+
+        // ── Normal Init ─────────────────────────────────────
         const saved = Utils.Stor.get('novelText');
         if (saved) {
-            D.continueBtn.style.display = 'inline-flex'; D.resetRow.style.display    = 'block';
+            D.continueBtn.style.display = 'inline-flex'; D.resetRow.style.display = 'block';
             loadedText = saved;
             if (saved.length < 100000) { D.input.value = saved; updatePreviewFromPaste(saved); }
             else { D.input.placeholder = `[Previous session loaded]\n\nBook is too large to render in the editor. Click "Start Reading" or "Continue" to resume.`; }
             setWordCount(saved);
         }
-        try { const savedSettings = JSON.parse(Utils.Stor.get('novelSettings') || '{}'); if (Object.keys(savedSettings).length) S = { ...S, ...savedSettings }; else if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) S.theme = 'midnight'; } catch {}
+        
+        if (Object.keys(localSettings).length) {
+            S = { ...S, ...localSettings };
+        } else if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
+            S.theme = 'midnight';
+        }
+
         applyAll(); bindEvents(); bindProximity(); bindDragDrop();
+        _updateSaveBtn();
     };
 
     return {
         init, switchTab, adjustFont, closeSettings,
+        
+        // Export logic exposed to the view
+        exportAsFile: openFilenameDialog,
+        _cancelExport: closeFilenameDialog,
+        _confirmExport() {
+            const raw = (D.fileInput.value || '').trim();
+            const clean = _sanitizeFilename(raw);
+            if (!clean) {
+                D.fileHint.textContent = 'Please enter a valid filename.';
+                D.fileHint.classList.add('error');
+                D.fileInput.focus();
+                return;
+            }
+            doExport(clean);
+        },
+
         pageNext() { if (currentPage < pages.length - 1) renderPage(currentPage + 1, 'fwd'); },
         pagePrev() { if (currentPage > 0) renderPage(currentPage - 1, 'back'); },
 
@@ -415,12 +633,14 @@ const App = (() => {
             display(text, 0);
             if (!S.pageMode) window.scrollTo(0, 0);
             D.continueBtn.style.display = 'inline-flex'; D.resetRow.style.display = 'block';
+            _updateSaveBtn();
         },
 
         loadSaved() {
             const text = Utils.Stor.get('novelText'); if (!text) return;
             if (S.pageMode) { const pg = parseInt(Utils.Stor.get('novelPage')) || 0; display(text, pg); }
             else { const pos = parseInt(Utils.Stor.get('novelScroll')) || 0; display(text); setTimeout(() => window.scrollTo(0, pos), 10); }
+            _updateSaveBtn();
         },
 
         goBack() {

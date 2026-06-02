@@ -234,6 +234,31 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
                 Clear Book Data
             </button>
+            <button class="btn btn-save-file" id="save-file-btn" onclick="App.exportAsFile()" style="display:none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Save as File
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Filename Dialog -->
+<div id="filename-overlay" onclick="App._cancelExport()" aria-hidden="true"></div>
+<div id="filename-dialog" role="dialog" aria-modal="true" aria-label="Save as File">
+    <div class="filename-dialog-inner">
+        <p class="filename-dialog-title">Save as File</p>
+        <p class="filename-dialog-desc">Name your file — share it with anyone to open in NovelReader.</p>
+        <div class="filename-input-wrap">
+            <input type="text" id="filename-input" class="filename-input" placeholder="my-book" spellcheck="false" autocomplete="off">
+            <span class="filename-ext">.html</span>
+        </div>
+        <div class="filename-dialog-hint" id="filename-dialog-hint"></div>
+        <div class="filename-dialog-btns">
+            <button class="btn btn-secondary" onclick="App._cancelExport()">Cancel</button>
+            <button class="btn btn-primary" id="filename-confirm-btn" onclick="App._confirmExport()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Download
+            </button>
         </div>
     </div>
 </div>
