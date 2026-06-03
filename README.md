@@ -1,4 +1,4 @@
-# NovelReader
+NovelReader
 
 NovelReader is a lightweight, privacy-first, zero-dependency web e-reader designed for distraction-free reading. It compiles into a single, self-contained HTML file that operates entirely client-side, making it highly portable, offline-native, and immune to server tracking or database vulnerabilities. Note: Vibecoded.
 
@@ -23,7 +23,7 @@ I made this application mainly because I read a lot online, and a lot of sites j
 NovelReader/
 ├── .gitignore
 ├── build.js            # Node build pipeline (concatenation & injection)
-├── index.html          # Compiled production build (GitHub Pages entry)
+├── index.html          # Compiled production build (Main application entry)
 └── src/
     ├── index.html      # Raw HTML template
     ├── css/
@@ -56,10 +56,10 @@ The files inside the `src/` directory must be compiled into the single productio
    ```bash
    node build.js
    ```
-3. This generates a compiled, optimized `NovelReader.html` file inside 'dist' folder, in the project root directory.
+3. This generates a compiled, fully optimized `index.html` file directly inside the project root directory.
 
 ### Running the Application
-Simply double-click the compiled `NovelReader.html` file in your file explorer to run it locally in any modern web browser, or host the file on any static hosting provider.
+Simply double-click the compiled `index.html` file in your project root folder to run it locally in any modern web browser, or host the file on any static hosting provider.
 
 ---
 
