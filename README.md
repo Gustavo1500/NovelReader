@@ -1,4 +1,4 @@
-NovelReader
+# NovelReader 📖
 
 NovelReader is a lightweight, privacy-first, zero-dependency web e-reader designed for distraction-free reading. It compiles into a single, self-contained HTML file that operates entirely client-side, making it highly portable, offline-native, and immune to server tracking or database vulnerabilities. Note: Vibecoded.
 
@@ -10,7 +10,7 @@ I made this application mainly because I read a lot online, and a lot of sites j
 
 *   **Privacy-First & Offline-Native:** 100% client-side processing. Your reading text and configurations never leave your browser and are stored securely in local browser storage.
 *   **Self-Contained "Save as File" Compiler:** Export what you are reading (complete with your active visual configurations and layout) as a standalone HTML file. The recipient can double-click this file to instantly launch into reading mode—no databases, servers, or external integrations required.
-*   **Procedural Aurora Background:** An organic, animated canvas backdrop that dynamically syncs colors with your active reading theme using CSS custom properties.
+*   **Procedural Aurora Background 🌌:** An organic, animated canvas backdrop that dynamically syncs colors with your active reading theme using CSS custom properties.
 *   **Advanced Typography:** Access to curated serif typefaces (Source Serif 4, Lora, EB Garamond, Literata, Crimson Pro, Cormorant Garamond) with optical-size support and traditional layouts (first-paragraph drop caps).
 *   **Direct Local Format Parsing:** Direct client-side parsing of EPUB files (extracting the reading spine and decompressing ZIP/XML archives natively), Markdown, and plain text.
 *   **Two Reading Modes:** Switch between traditional continuous vertical scrolling and height-calculated horizontal pagination.
@@ -43,7 +43,7 @@ NovelReader/
 
 ---
 
-## Getting Started
+## Getting Started 🕯️
 
 ### Prerequisites
 *   [Node.js](https://nodejs.org/) (installed locally for compilation)
@@ -63,7 +63,7 @@ Simply double-click the compiled `index.html` file in your project root folder t
 
 ---
 
-## The Standalone Sharing Mechanic
+## The Standalone Sharing Mechanic 💾
 
 NovelReader includes a custom compiler module that packages your current book and active layout choices (theme, font, margins) into a separate, lightweight HTML file.
 
